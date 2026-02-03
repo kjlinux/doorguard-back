@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\DoorEventCreated;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDoorEventRequest;
 use App\Http\Resources\DoorEventResource;
 use App\Models\DoorEvent;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DoorEventController extends Controller
@@ -28,6 +29,22 @@ class DoorEventController extends Controller
         $events = $query->paginate($limit);
 
         return DoorEventResource::collection($events);
+    }
+
+    public function store(StoreDoorEventRequest $request): DoorEventResource
+    {
+        $doorEvent = DoorEvent::create([
+            'door_id' => $request->input('door_id'),
+            'status' => $request->input('status'),
+            'card_holder_id' => $request->input('card_holder_id'),
+            'timestamp' => $request->input('timestamp', now()),
+        ]);
+
+        event(new DoorEventCreated($doorEvent));
+
+        $doorEvent->load(['door', 'cardHolder']);
+
+        return new DoorEventResource($doorEvent);
     }
 
     public function show(DoorEvent $doorEvent): DoorEventResource

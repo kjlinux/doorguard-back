@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where:*)",
+      "Bash(find:*)",
+      "Bash(php artisan:*)",
+      "Bash(php:*)",
+      "Bash(C:laragonbinphpphp-8.4.12-nts-Win32-vs17-x64php.exe c:laragonwwwdoorguard-backartisan --version)",
+      "Bash(cmd.exe /c \"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe c:\\\\laragon\\\\www\\\\doorguard-back\\\\artisan --version\")",
+      "Bash(cmd.exe /c \"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe artisan --version\")",
+      "Bash(cmd /c \"cd /d c:\\\\laragon\\\\www\\\\doorguard-back && C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe artisan --version\")",
+      "Bash(cmd /c \"dir C:\\\\laragon\\\\etc\\\\ssl\\\\cacert.pem\")"
+    ]
+  }
+}
