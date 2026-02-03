@@ -22,7 +22,14 @@
       "Bash(curl:*)",
       "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan cache:clear)",
       "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan route:clear)",
-      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan tinker --execute=\"var_dump\\(config\\(''mqtt''\\)\\);\")"
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan tinker --execute=\"var_dump\\(config\\(''mqtt''\\)\\);\")",
+      "Bash(C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe artisan queue:work:*)",
+      "Bash(cmd /c \"php artisan queue:work --once\")",
+      "Bash(cmd /c \"php artisan queue:table\")",
+      "Bash(findstr:*)",
+      "Bash(cmd /c \"dir database\\\\migrations | findstr queue\")",
+      "Bash(psql:*)",
+      "Bash(cmd /c \"psql -U postgres -d doorguard_db -c \"\"\\\\dt jobs\"\"\")"
     ]
   }
 }
