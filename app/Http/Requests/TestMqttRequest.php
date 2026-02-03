@@ -14,8 +14,6 @@ class TestMqttRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'broker' => ['required', 'string'],
-            'port' => ['required', 'integer', 'min:1', 'max:65535'],
             'topic' => ['required', 'string'],
         ];
     }

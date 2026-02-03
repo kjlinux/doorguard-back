@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\DoorController;
-use App\Http\Controllers\Api\DoorEventController;
 use App\Http\Controllers\Api\MqttController;
 use App\Http\Controllers\Api\SensorController;
 use App\Http\Controllers\Api\SensorEventController;
@@ -24,15 +22,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard
     Route::get('/dashboard/metrics', [DashboardController::class, 'metrics']);
     Route::get('/dashboard/hourly-activity', [DashboardController::class, 'hourlyActivity']);
-    Route::get('/dashboard/door-activity', [DashboardController::class, 'doorActivity']);
+    Route::get('/dashboard/sensor-activity', [DashboardController::class, 'sensorActivity']);
 
-    // Door Events
-    Route::get('/events', [DoorEventController::class, 'index']);
-    Route::post('/events', [DoorEventController::class, 'store']);
-    Route::get('/events/{doorEvent}', [DoorEventController::class, 'show']);
-
-    // Doors
-    Route::apiResource('doors', DoorController::class);
+    // Sensor Events
+    Route::get('/events', [SensorEventController::class, 'index']);
+    Route::get('/events/{sensorEvent}', [SensorEventController::class, 'show']);
 
     // Sensors
     Route::apiResource('sensors', SensorController::class);

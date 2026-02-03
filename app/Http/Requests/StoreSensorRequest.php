@@ -16,10 +16,14 @@ class StoreSensorRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
-            'door_id' => ['required', 'exists:doors,id'],
-            'mqtt_broker' => ['nullable', 'string', 'max:255'],
-            'mqtt_port' => ['sometimes', 'integer', 'min:1', 'max:65535'],
-            'mqtt_topic' => ['required', 'string', 'max:255'],
+            'mqtt_topic' => ['required', 'string', 'max:255', 'unique:sensors,mqtt_topic'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'mqtt_topic.unique' => 'Ce topic MQTT est déjà utilisé par un autre capteur.',
         ];
     }
 }

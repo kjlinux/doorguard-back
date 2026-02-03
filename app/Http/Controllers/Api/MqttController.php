@@ -14,13 +14,22 @@ class MqttController extends Controller
     {
         try {
             $mqtt = new MqttClient(
-                $request->input('broker'),
-                $request->input('port'),
+                config('mqtt.host'),
+                config('mqtt.port'),
                 'doorguard-test-' . uniqid()
             );
 
             $connectionSettings = (new ConnectionSettings)
-                ->setConnectTimeout(5);
+                ->setConnectTimeout(10)
+                ->setUseTls(config('mqtt.tls_enabled'))
+                ->setTlsVerifyPeer(false)
+                ->setTlsVerifyPeerName(false);
+
+            if (config('mqtt.auth.enabled')) {
+                $connectionSettings
+                    ->setUsername(config('mqtt.auth.username'))
+                    ->setPassword(config('mqtt.auth.password'));
+            }
 
             $mqtt->connect($connectionSettings);
             $mqtt->publish($request->input('topic'), json_encode([

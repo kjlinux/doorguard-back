@@ -2,10 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Events\DoorEventCreated;
-use App\Models\CardHolder;
-use App\Models\DoorEvent;
+use App\Events\SensorEventCreated;
 use App\Models\Sensor;
+use App\Models\SensorEvent;
 use Illuminate\Console\Command;
 use PhpMqtt\Client\ConnectionSettings;
 use PhpMqtt\Client\MqttClient;
@@ -40,14 +39,15 @@ class MqttListenCommand extends Command
                 ->setConnectTimeout(30);
 
             if ($tlsEnabled) {
-                $connectionSettings->setUseTls(true)
+                $connectionSettings = $connectionSettings
+                    ->setUseTls(true)
                     ->setTlsSelfSignedAllowed(true)
                     ->setTlsVerifyPeer(false)
                     ->setTlsVerifyPeerName(false);
 
                 $caFile = env('MQTT_TLS_CA_FILE');
                 if ($caFile) {
-                    $connectionSettings->setTlsCertificateAuthorityFile($caFile);
+                    $connectionSettings = $connectionSettings->setTlsCertificateAuthorityFile($caFile);
                 }
             }
 
@@ -105,23 +105,16 @@ class MqttListenCommand extends Command
             'last_seen' => now(),
         ]);
 
-        // Trouver le CardHolder par card_id si fourni
-        $cardHolder = null;
-        if (!empty($data['card_id'])) {
-            $cardHolder = CardHolder::where('card_id', $data['card_id'])->first();
-        }
-
-        // Créer l'événement de porte
-        $doorEvent = DoorEvent::create([
-            'door_id' => $sensor->door_id,
+        // Créer l'événement du capteur
+        $sensorEvent = SensorEvent::create([
+            'sensor_id' => $sensor->id,
             'status' => $data['action'] ?? $data['status'] ?? 'open',
-            'card_holder_id' => $cardHolder?->id,
-            'timestamp' => !empty($data['timestamp']) ? $data['timestamp'] : now(),
+            'detected_at' => !empty($data['timestamp']) ? $data['timestamp'] : now(),
         ]);
 
         // Broadcaster l'événement en temps réel
-        event(new DoorEventCreated($doorEvent));
+        event(new SensorEventCreated($sensorEvent));
 
-        $this->info("Événement créé: porte #{$sensor->door_id} - {$doorEvent->status} - carte: " . ($cardHolder?->name ?? 'inconnu'));
+        $this->info("Événement créé: capteur #{$sensor->id} ({$sensor->name}) - {$sensorEvent->status} à {$sensorEvent->detected_at}");
     }
 }

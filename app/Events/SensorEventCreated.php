@@ -2,37 +2,37 @@
 
 namespace App\Events;
 
-use App\Http\Resources\DoorEventResource;
-use App\Models\DoorEvent;
+use App\Http\Resources\SensorEventResource;
+use App\Models\SensorEvent;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DoorEventCreated implements ShouldBroadcast
+class SensorEventCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public DoorEvent $doorEvent)
+    public function __construct(public SensorEvent $sensorEvent)
     {
-        $this->doorEvent->load(['door']);
+        $this->sensorEvent->load(['sensor']);
     }
 
     public function broadcastOn(): array
     {
         return [
-            new Channel('door-events'),
+            new Channel('sensor-events'),
         ];
     }
 
     public function broadcastAs(): string
     {
-        return 'door.event.created';
+        return 'sensor.event.created';
     }
 
     public function broadcastWith(): array
     {
-        return (new DoorEventResource($this->doorEvent))->resolve();
+        return (new SensorEventResource($this->sensorEvent))->resolve();
     }
 }

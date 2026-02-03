@@ -13,7 +13,7 @@ class DoorEventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DoorEvent::with(['door', 'cardHolder'])
+        $query = DoorEvent::with(['door'])
             ->orderByDesc('timestamp');
 
         if ($request->has('door_id')) {
@@ -36,20 +36,19 @@ class DoorEventController extends Controller
         $doorEvent = DoorEvent::create([
             'door_id' => $request->input('door_id'),
             'status' => $request->input('status'),
-            'card_holder_id' => $request->input('card_holder_id'),
             'timestamp' => $request->input('timestamp', now()),
         ]);
 
         event(new DoorEventCreated($doorEvent));
 
-        $doorEvent->load(['door', 'cardHolder']);
+        $doorEvent->load(['door']);
 
         return new DoorEventResource($doorEvent);
     }
 
     public function show(DoorEvent $doorEvent): DoorEventResource
     {
-        $doorEvent->load(['door', 'cardHolder']);
+        $doorEvent->load(['door']);
 
         return new DoorEventResource($doorEvent);
     }

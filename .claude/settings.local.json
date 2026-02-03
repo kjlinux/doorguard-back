@@ -9,7 +9,20 @@
       "Bash(cmd.exe /c \"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe c:\\\\laragon\\\\www\\\\doorguard-back\\\\artisan --version\")",
       "Bash(cmd.exe /c \"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe artisan --version\")",
       "Bash(cmd /c \"cd /d c:\\\\laragon\\\\www\\\\doorguard-back && C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe artisan --version\")",
-      "Bash(cmd /c \"dir C:\\\\laragon\\\\etc\\\\ssl\\\\cacert.pem\")"
+      "Bash(cmd /c \"dir C:\\\\laragon\\\\etc\\\\ssl\\\\cacert.pem\")",
+      "Bash(powershell.exe -Command \"& ''C:\\\\laragon\\\\bin\\\\php\\\\php-8.2.23-Win32-vs16-x64\\\\php.exe'' -r \"\"echo ''OpenSSL: '' . \\(extension_loaded\\(''openssl''\\) ? ''loaded'' : ''NOT loaded''\\) . PHP_EOL; echo ''Version: '' . OPENSSL_VERSION_TEXT . PHP_EOL; echo ''cafile: '' . ini_get\\(''openssl.cafile''\\) . PHP_EOL;\"\"\")",
+      "Bash(powershell.exe:*)",
+      "Bash(C:laragonbinphpphp-8.4.12-nts-Win32-vs17-x64php.exe artisan migrate:status)",
+      "Bash(dir:*)",
+      "Bash(/c/laragon/bin/php/php-8.3.0-Win32-vs16-x64/php.exe artisan config:clear:*)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan config:clear)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" test-mqtt-debug.php)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" check-env.php)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" test-mqtt-advanced.php)",
+      "Bash(curl:*)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan cache:clear)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan route:clear)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.4.12-nts-Win32-vs17-x64\\\\php.exe\" artisan tinker --execute=\"var_dump\\(config\\(''mqtt''\\)\\);\")"
     ]
   }
 }

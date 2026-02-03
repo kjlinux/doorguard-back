@@ -7,7 +7,9 @@ use App\Http\Requests\StoreSensorRequest;
 use App\Http\Requests\UpdateSensorRequest;
 use App\Http\Resources\SensorResource;
 use App\Models\Sensor;
+use App\Models\Door;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class SensorController extends Controller
 {
@@ -18,7 +20,17 @@ class SensorController extends Controller
 
     public function store(StoreSensorRequest $request): SensorResource
     {
-        $sensor = Sensor::create($request->validated());
+        $validated = $request->validated();
+
+        // Create the sensor
+        $sensor = Sensor::create([
+            'name' => $validated['name'],
+            'location' => $validated['location'],
+            'mqtt_topic' => $validated['mqtt_topic'],
+            'mqtt_broker' => config('mqtt.host'),
+            'mqtt_port' => config('mqtt.port'),
+            'status' => 'offline',
+        ]);
 
         return new SensorResource($sensor);
     }

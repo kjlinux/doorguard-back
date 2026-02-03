@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\DoorEvent;
 use App\Models\Sensor;
+use App\Models\SensorEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,35 +16,28 @@ class DashboardController extends Controller
         $since = now()->subHours(24);
 
         // Total events in the last 24 hours
-        $totalEvents = DoorEvent::where('timestamp', '>=', $since)->count();
+        $totalEvents = SensorEvent::where('detected_at', '>=', $since)->count();
 
-        // Open doors: doors whose latest event has status "open"
-        $openDoors = DB::table('door_events as de')
+        // Open sensors: sensors whose latest event has status "open"
+        $openSensors = DB::table('sensor_events as se')
             ->joinSub(
-                DB::table('door_events')
-                    ->select('door_id', DB::raw('MAX(id) as max_id'))
-                    ->groupBy('door_id'),
+                DB::table('sensor_events')
+                    ->select('sensor_id', DB::raw('MAX(id) as max_id'))
+                    ->groupBy('sensor_id'),
                 'latest',
-                'de.id',
+                'se.id',
                 '=',
                 'latest.max_id'
             )
-            ->where('de.status', 'open')
+            ->where('se.status', 'open')
             ->count();
-
-        // Unique cards used in the last 24 hours
-        $uniqueCards = DoorEvent::where('timestamp', '>=', $since)
-            ->whereNotNull('card_holder_id')
-            ->distinct('card_holder_id')
-            ->count('card_holder_id');
 
         // Sensors online
         $sensorsOnline = Sensor::where('status', 'online')->count();
 
         return response()->json([
             'totalEvents' => $totalEvents,
-            'openDoors' => $openDoors,
-            'uniqueCards' => $uniqueCards,
+            'openSensors' => $openSensors,
             'sensorsOnline' => $sensorsOnline,
         ]);
     }
@@ -54,12 +47,12 @@ class DashboardController extends Controller
         $hours = (int) $request->input('hours', 12);
         $since = now()->subHours($hours);
 
-        $results = DoorEvent::where('timestamp', '>=', $since)
+        $results = SensorEvent::where('detected_at', '>=', $since)
             ->select(
-                DB::raw("to_char(timestamp, 'HH24:00') as hour"),
+                DB::raw("to_char(detected_at, 'HH24:00') as hour"),
                 DB::raw('COUNT(*) as events')
             )
-            ->groupBy(DB::raw("to_char(timestamp, 'HH24:00')"))
+            ->groupBy(DB::raw("to_char(detected_at, 'HH24:00')"))
             ->orderBy('hour')
             ->get();
 
@@ -68,16 +61,16 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function doorActivity(): JsonResponse
+    public function sensorActivity(): JsonResponse
     {
-        $results = DoorEvent::join('doors', 'doors.id', '=', 'door_events.door_id')
-            ->select('doors.name as door', DB::raw('COUNT(*) as events'))
-            ->groupBy('doors.id', 'doors.name')
+        $results = SensorEvent::join('sensors', 'sensors.id', '=', 'sensor_events.sensor_id')
+            ->select('sensors.name as sensor', DB::raw('COUNT(*) as events'))
+            ->groupBy('sensors.id', 'sensors.name')
             ->orderByDesc('events')
             ->get();
 
         return response()->json([
-            'doorActivity' => $results,
+            'sensorActivity' => $results,
         ]);
     }
 }

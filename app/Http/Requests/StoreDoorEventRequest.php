@@ -16,7 +16,6 @@ class StoreDoorEventRequest extends FormRequest
         return [
             'door_id' => 'required|exists:doors,id',
             'status' => 'required|string|in:open,closed',
-            'card_holder_id' => 'nullable|exists:card_holders,id',
             'timestamp' => 'nullable|date',
         ];
     }

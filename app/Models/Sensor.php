@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sensor extends Model
 {
@@ -13,7 +13,6 @@ class Sensor extends Model
     protected $fillable = [
         'name',
         'location',
-        'door_id',
         'mqtt_broker',
         'mqtt_port',
         'mqtt_topic',
@@ -29,8 +28,8 @@ class Sensor extends Model
         ];
     }
 
-    public function door(): BelongsTo
+    public function events(): HasMany
     {
-        return $this->belongsTo(Door::class);
+        return $this->hasMany(SensorEvent::class);
     }
 }

@@ -22,10 +22,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            DoorSeeder::class,
-            CardHolderSeeder::class,
             SensorSeeder::class,
-            DoorEventSeeder::class,
+            SensorEventSeeder::class,
         ]);
     }
 }

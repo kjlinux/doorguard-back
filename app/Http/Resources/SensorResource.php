@@ -13,7 +13,6 @@ class SensorResource extends JsonResource
             'id' => (string) $this->id,
             'name' => $this->name,
             'location' => $this->location,
-            'doorId' => (string) $this->door_id,
             'mqttBroker' => $this->mqtt_broker,
             'mqttPort' => $this->mqtt_port,
             'mqttTopic' => $this->mqtt_topic,
