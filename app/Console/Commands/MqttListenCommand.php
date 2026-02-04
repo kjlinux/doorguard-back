@@ -17,12 +17,12 @@ class MqttListenCommand extends Command
 
     public function handle(): int
     {
-        $host = env('MQTT_HOST');
-        $port = (int) env('MQTT_PORT', 8883);
-        $username = env('MQTT_AUTH_USERNAME');
-        $password = env('MQTT_AUTH_PASSWORD');
-        $clientId = env('MQTT_CLIENT_ID', 'doorguard-api');
-        $tlsEnabled = filter_var(env('MQTT_TLS_ENABLED', false), FILTER_VALIDATE_BOOLEAN);
+        $host = config('mqtt.host');
+        $port = (int) config('mqtt.port', 8883);
+        $username = config('mqtt.auth.username');
+        $password = config('mqtt.auth.password');
+        $clientId = config('mqtt.client_id', 'doorguard-api');
+        $tlsEnabled = config('mqtt.tls_enabled', false);
 
         $this->info("Connexion au broker MQTT {$host}:{$port}...");
         $this->info("TLS: " . ($tlsEnabled ? 'oui' : 'non'));
@@ -45,7 +45,7 @@ class MqttListenCommand extends Command
                     ->setTlsVerifyPeer(false)
                     ->setTlsVerifyPeerName(false);
 
-                $caFile = env('MQTT_TLS_CA_FILE');
+                $caFile = config('mqtt.tls_ca_file');
                 if ($caFile) {
                     $connectionSettings = $connectionSettings->setTlsCertificateAuthorityFile($caFile);
                 }

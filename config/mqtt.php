@@ -23,4 +23,6 @@ return [
         'username' => env('MQTT_AUTH_USERNAME'),
         'password' => env('MQTT_AUTH_PASSWORD'),
     ],
+
+    'tls_ca_file' => env('MQTT_TLS_CA_FILE'),
 ];
