@@ -1,0 +1,16 @@
+[Unit]
+Description=DoorGuard Reverb WebSocket Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/doorguard-back
+ExecStart=/usr/bin/php /path/to/doorguard-back/artisan reverb:start
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/doorguard-reverb.log
+StandardError=append:/var/log/doorguard-reverb-error.log
+
+[Install]
+WantedBy=multi-user.target

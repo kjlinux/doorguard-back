@@ -1,0 +1,16 @@
+[Unit]
+Description=DoorGuard Queue Worker
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/doorguard-back
+ExecStart=/usr/bin/php /path/to/doorguard-back/artisan queue:work --sleep=3 --tries=3 --max-jobs=1000 --timeout=90
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/doorguard-queue.log
+StandardError=append:/var/log/doorguard-queue-error.log
+
+[Install]
+WantedBy=multi-user.target

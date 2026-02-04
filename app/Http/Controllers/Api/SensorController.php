@@ -22,10 +22,19 @@ class SensorController extends Controller
     {
         $validated = $request->validated();
 
+        // Extract unique_id from mqtt_topic (e.g., doorguard/sensor/sgci/event -> sgci)
+        $parts = explode('/', $validated['mqtt_topic']);
+        $uniqueId = $parts[2] ?? null;
+
+        if (!$uniqueId) {
+            throw new \InvalidArgumentException('Invalid MQTT topic format. Expected: doorguard/sensor/{unique_id}/event');
+        }
+
         // Create the sensor
         $sensor = Sensor::create([
             'name' => $validated['name'],
             'location' => $validated['location'],
+            'unique_id' => $uniqueId,
             'mqtt_topic' => $validated['mqtt_topic'],
             'mqtt_broker' => config('mqtt.host'),
             'mqtt_port' => config('mqtt.port'),

@@ -29,7 +29,8 @@
       "Bash(findstr:*)",
       "Bash(cmd /c \"dir database\\\\migrations | findstr queue\")",
       "Bash(psql:*)",
-      "Bash(cmd /c \"psql -U postgres -d doorguard_db -c \"\"\\\\dt jobs\"\"\")"
+      "Bash(cmd /c \"psql -U postgres -d doorguard_db -c \"\"\\\\dt jobs\"\"\")",
+      "Bash(C:laragonbinphpphp-8.3.12-Win32-vs16-x64php.exe artisan tinker --execute=\"echo ''Sensors: ''; echo \\\\App\\\\Models\\\\Sensor::all\\([''id'', ''name'', ''unique_id'']\\)->toJson\\(JSON_PRETTY_PRINT\\);\")"
     ]
   }
 }

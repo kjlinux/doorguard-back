@@ -85,17 +85,20 @@ class MqttListenCommand extends Command
             return;
         }
 
-        // Extraire le sensor_id du topic: doorguard/sensor/{sensor_id}/event
+        // Extraire le unique_id du topic: doorguard/sensor/{unique_id}/event
         $parts = explode('/', $topic);
-        $sensorIdentifier = $parts[2] ?? null;
+        $uniqueId = $parts[2] ?? null;
 
-        // Trouver le capteur par son mqtt_topic ou par l'identifiant dans le topic
-        $sensor = Sensor::where('mqtt_topic', $topic)
-            ->orWhere('id', $sensorIdentifier)
-            ->first();
+        if (!$uniqueId) {
+            $this->warn("Format de topic invalide [{$topic}], ignoré.");
+            return;
+        }
+
+        // Trouver le capteur par son unique_id
+        $sensor = Sensor::where('unique_id', $uniqueId)->first();
 
         if (!$sensor) {
-            $this->warn("Capteur inconnu pour le topic [{$topic}], ignoré.");
+            $this->warn("Capteur inconnu avec unique_id [{$uniqueId}] pour le topic [{$topic}], ignoré.");
             return;
         }
 

@@ -1,0 +1,16 @@
+[Unit]
+Description=DoorGuard MQTT Listener
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/doorguard-back
+ExecStart=/usr/bin/php /path/to/doorguard-back/artisan mqtt:listen
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/doorguard-mqtt.log
+StandardError=append:/var/log/doorguard-mqtt-error.log
+
+[Install]
+WantedBy=multi-user.target

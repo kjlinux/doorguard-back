@@ -13,6 +13,7 @@ class Sensor extends Model
     protected $fillable = [
         'name',
         'location',
+        'unique_id',
         'mqtt_broker',
         'mqtt_port',
         'mqtt_topic',

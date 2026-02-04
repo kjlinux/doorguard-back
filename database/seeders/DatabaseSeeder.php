@@ -16,14 +16,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'Admin DoorGuard',
-            'email' => 'admin@doorguard.io',
-            'password' => bcrypt('password'),
+            'name' => 'Admin',
+            'email' => 'admin@doorguard.com',
+            'password' => bcrypt('Admin123!'),
         ]);
 
-        $this->call([
-            SensorSeeder::class,
-            SensorEventSeeder::class,
-        ]);
+        // $this->call([
+        //     SensorSeeder::class,
+        //     SensorEventSeeder::class,
+        // ]);
     }
 }
