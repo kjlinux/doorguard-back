@@ -17,6 +17,7 @@ class StoreDoorRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:doors,slug'],
             'location' => ['nullable', 'string', 'max:255'],
+            'sensor_id' => ['nullable', 'exists:sensors,id'],
         ];
     }
 }

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccessLog;
+use App\Models\Door;
 use App\Models\Sensor;
-use App\Models\SensorEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,29 +16,22 @@ class DashboardController extends Controller
     {
         $since = now()->subHours(24);
 
-        // Total events in the last 24 hours
-        $totalEvents = SensorEvent::where('detected_at', '>=', $since)->count();
+        $totalAccess = AccessLog::where('responded_at', '>=', $since)->count();
 
-        // Open sensors: sensors whose latest event has status "open"
-        $openSensors = DB::table('sensor_events as se')
-            ->joinSub(
-                DB::table('sensor_events')
-                    ->select('sensor_id', DB::raw('MAX(id) as max_id'))
-                    ->groupBy('sensor_id'),
-                'latest',
-                'se.id',
-                '=',
-                'latest.max_id'
-            )
-            ->where('se.status', 'open')
+        $refusedAccess = AccessLog::where('responded_at', '>=', $since)
+            ->whereIn('status', ['refused', 'rejected'])
             ->count();
 
-        // Sensors online
+        $activeDoors = Door::whereHas('sensor', function ($q) {
+            $q->where('status', 'online');
+        })->count();
+
         $sensorsOnline = Sensor::where('status', 'online')->count();
 
         return response()->json([
-            'totalEvents' => $totalEvents,
-            'openSensors' => $openSensors,
+            'totalAccess' => $totalAccess,
+            'refusedAccess' => $refusedAccess,
+            'activeDoors' => $activeDoors,
             'sensorsOnline' => $sensorsOnline,
         ]);
     }
@@ -47,12 +41,12 @@ class DashboardController extends Controller
         $hours = (int) $request->input('hours', 12);
         $since = now()->subHours($hours);
 
-        $results = SensorEvent::where('detected_at', '>=', $since)
+        $results = AccessLog::where('responded_at', '>=', $since)
             ->select(
-                DB::raw("to_char(detected_at, 'HH24:00') as hour"),
+                DB::raw("to_char(responded_at, 'HH24:00') as hour"),
                 DB::raw('COUNT(*) as events')
             )
-            ->groupBy(DB::raw("to_char(detected_at, 'HH24:00')"))
+            ->groupBy(DB::raw("to_char(responded_at, 'HH24:00')"))
             ->orderBy('hour')
             ->get();
 
@@ -61,16 +55,16 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function sensorActivity(): JsonResponse
+    public function doorActivity(): JsonResponse
     {
-        $results = SensorEvent::join('sensors', 'sensors.id', '=', 'sensor_events.sensor_id')
-            ->select('sensors.name as sensor', DB::raw('COUNT(*) as events'))
-            ->groupBy('sensors.id', 'sensors.name')
+        $results = AccessLog::join('doors', 'doors.id', '=', 'access_logs.door_id')
+            ->select('doors.name as door', DB::raw('COUNT(*) as events'))
+            ->groupBy('doors.id', 'doors.name')
             ->orderByDesc('events')
             ->get();
 
         return response()->json([
-            'sensorActivity' => $results,
+            'doorActivity' => $results,
         ]);
     }
 }

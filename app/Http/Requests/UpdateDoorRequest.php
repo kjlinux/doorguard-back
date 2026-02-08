@@ -18,6 +18,7 @@ class UpdateDoorRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'slug' => ['sometimes', 'string', 'max:255', Rule::unique('doors', 'slug')->ignore($this->route('door'))],
             'location' => ['nullable', 'string', 'max:255'],
+            'sensor_id' => ['nullable', 'exists:sensors,id'],
         ];
     }
 }

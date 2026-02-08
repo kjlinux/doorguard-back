@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Events\SensorEventCreated;
+use App\Events\AccessLogCreated;
+use App\Models\AccessLog;
+use App\Models\Badge;
 use App\Models\Sensor;
-use App\Models\SensorEvent;
 use Illuminate\Console\Command;
 use PhpMqtt\Client\ConnectionSettings;
 use PhpMqtt\Client\MqttClient;
@@ -13,7 +14,14 @@ class MqttListenCommand extends Command
 {
     protected $signature = 'mqtt:listen';
 
-    protected $description = 'Ecoute les topics MQTT des capteurs et enregistre les événements de porte';
+    protected $description = 'Ecoute les topics MQTT des capteurs et traite les demandes d\'accès par badge RFID';
+
+    // Codes de commande ESP32
+    private const ACCEPTED = '0x001021J';
+    private const REFUSED = '0x0030212';
+    private const REJECTED = '0x1080814';
+
+    private ?MqttClient $mqtt = null;
 
     public function handle(): int
     {
@@ -27,10 +35,9 @@ class MqttListenCommand extends Command
         $this->info("Connexion au broker MQTT {$host}:{$port}...");
         $this->info("TLS: " . ($tlsEnabled ? 'oui' : 'non'));
         $this->info("Username: {$username}");
-        $this->info("OpenSSL cafile: " . ini_get('openssl.cafile'));
 
         try {
-            $mqtt = new MqttClient($host, $port, $clientId, MqttClient::MQTT_3_1_1);
+            $this->mqtt = new MqttClient($host, $port, $clientId, MqttClient::MQTT_3_1_1);
 
             $connectionSettings = (new ConnectionSettings)
                 ->setUsername($username)
@@ -52,19 +59,19 @@ class MqttListenCommand extends Command
             }
 
             $this->info('Tentative de connexion MQTT...');
-            $mqtt->connect($connectionSettings, true);
+            $this->mqtt->connect($connectionSettings, true);
             $this->info('Connecté au broker MQTT.');
 
             // Souscrire au topic wildcard pour tous les capteurs
             $topic = 'doorguard/sensor/+/event';
-            $mqtt->subscribe($topic, function (string $topic, string $message) {
+            $this->mqtt->subscribe($topic, function (string $topic, string $message) {
                 $this->processMessage($topic, $message);
             }, MqttClient::QOS_AT_LEAST_ONCE);
 
             $this->info("Souscrit au topic: {$topic}");
-            $this->info('En attente de messages... (Ctrl+C pour arrêter)');
+            $this->info('En attente de scans de badges... (Ctrl+C pour arrêter)');
 
-            $mqtt->loop(true);
+            $this->mqtt->loop(true);
 
         } catch (\Exception $e) {
             $this->error('Erreur MQTT: ' . $e->getMessage());
@@ -98,7 +105,7 @@ class MqttListenCommand extends Command
         $sensor = Sensor::where('unique_id', $uniqueId)->first();
 
         if (!$sensor) {
-            $this->warn("Capteur inconnu avec unique_id [{$uniqueId}] pour le topic [{$topic}], ignoré.");
+            $this->warn("Capteur inconnu avec unique_id [{$uniqueId}], ignoré.");
             return;
         }
 
@@ -108,16 +115,86 @@ class MqttListenCommand extends Command
             'last_seen' => now(),
         ]);
 
-        // Créer l'événement du capteur
-        $sensorEvent = SensorEvent::create([
+        // Extraire l'UID du badge scanné
+        $badgeUid = $data['user_id'] ?? null;
+
+        if (!$badgeUid) {
+            $this->warn("Pas de user_id dans le message, ignoré.");
+            return;
+        }
+
+        // Trouver la porte associée au capteur
+        $door = $sensor->door;
+
+        // Chercher le badge dans la base de données
+        $badge = Badge::where('uid', $badgeUid)->first();
+
+        // Logique de décision d'accès
+        $status = $this->resolveAccessDecision($badge, $door);
+        $responseCode = $this->getResponseCode($status);
+
+        $this->info("Décision pour badge [{$badgeUid}] sur capteur [{$sensor->name}]: {$status}");
+
+        // Publier la réponse sur le topic de réponse du capteur
+        $responseTopic = "doorguard/sensor/{$uniqueId}/response";
+        if ($this->mqtt) {
+            $this->mqtt->publish($responseTopic, $responseCode, MqttClient::QOS_AT_LEAST_ONCE);
+            $this->info("Réponse publiée sur [{$responseTopic}]: {$responseCode}");
+        }
+
+        // Créer le log d'accès
+        $accessLog = AccessLog::create([
+            'badge_id' => $badge?->id,
+            'door_id' => $door?->id,
             'sensor_id' => $sensor->id,
-            'status' => $data['action'] ?? $data['status'] ?? 'open',
-            'detected_at' => !empty($data['timestamp']) ? $data['timestamp'] : now(),
+            'status' => $status,
+            'badge_uid' => $badgeUid,
+            'responded_at' => now(),
         ]);
 
         // Broadcaster l'événement en temps réel
-        event(new SensorEventCreated($sensorEvent));
+        event(new AccessLogCreated($accessLog));
 
-        $this->info("Événement créé: capteur #{$sensor->id} ({$sensor->name}) - {$sensorEvent->status} à {$sensorEvent->detected_at}");
+        $holderName = $badge?->holder_name ?? 'Inconnu';
+        $doorName = $door?->name ?? 'N/A';
+        $this->info("Log créé: {$holderName} [{$badgeUid}] → {$doorName} = {$status}");
+    }
+
+    private function resolveAccessDecision(?Badge $badge, $door): string
+    {
+        // Badge inconnu → REJECTED
+        if (!$badge) {
+            return 'rejected';
+        }
+
+        // Badge désactivé → REFUSED
+        if (!$badge->is_active) {
+            return 'refused';
+        }
+
+        // Pas de porte associée au capteur → REFUSED
+        if (!$door) {
+            return 'refused';
+        }
+
+        // Vérifier si le badge a la permission sur cette porte
+        $hasPermission = $badge->doors()->where('doors.id', $door->id)->exists();
+
+        if (!$hasPermission) {
+            return 'refused';
+        }
+
+        // Tout est OK → ACCEPTED
+        return 'accepted';
+    }
+
+    private function getResponseCode(string $status): string
+    {
+        return match ($status) {
+            'accepted' => self::ACCEPTED,
+            'refused' => self::REFUSED,
+            'rejected' => self::REJECTED,
+            default => self::REFUSED,
+        };
     }
 }
