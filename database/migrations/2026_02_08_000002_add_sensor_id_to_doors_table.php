@@ -8,17 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('doors', function (Blueprint $table) {
-            if (!Schema::hasColumn('doors', 'sensor_id')) {
+        if (!Schema::hasTable('doors')) {
+            Schema::create('doors', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->string('location')->nullable();
                 $table->foreignId('sensor_id')->nullable()->constrained('sensors')->nullOnDelete();
-            }
-        });
+                $table->timestamps();
+            });
+        } else {
+            Schema::table('doors', function (Blueprint $table) {
+                if (!Schema::hasColumn('doors', 'sensor_id')) {
+                    $table->foreignId('sensor_id')->nullable()->constrained('sensors')->nullOnDelete();
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('doors', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('sensor_id');
-        });
+        Schema::dropIfExists('doors');
     }
 };
