@@ -93,22 +93,31 @@ class MqttController extends Controller
 
     private function createMqttClient(string $clientId): MqttClient
     {
-        $mqtt = new MqttClient(
-            config('mqtt.host'),
-            config('mqtt.port'),
-            $clientId
-        );
+        $host = config('mqtt.host');
+        $port = (int) config('mqtt.port', 8883);
+        $tlsEnabled = config('mqtt.tls_enabled', false);
+        $username = config('mqtt.auth.username');
+        $password = config('mqtt.auth.password');
+
+        $mqtt = new MqttClient($host, $port, $clientId, MqttClient::MQTT_3_1_1);
 
         $connectionSettings = (new ConnectionSettings)
-            ->setConnectTimeout(10)
-            ->setUseTls(config('mqtt.tls_enabled'))
-            ->setTlsVerifyPeer(false)
-            ->setTlsVerifyPeerName(false);
+            ->setUsername($username)
+            ->setPassword($password)
+            ->setConnectTimeout(30)
+            ->setKeepAliveInterval(10);
 
-        if (config('mqtt.auth.enabled')) {
-            $connectionSettings
-                ->setUsername(config('mqtt.auth.username'))
-                ->setPassword(config('mqtt.auth.password'));
+        if ($tlsEnabled) {
+            $connectionSettings = $connectionSettings
+                ->setUseTls(true)
+                ->setTlsSelfSignedAllowed(true)
+                ->setTlsVerifyPeer(false)
+                ->setTlsVerifyPeerName(false);
+
+            $caFile = config('mqtt.tls_ca_file');
+            if ($caFile) {
+                $connectionSettings = $connectionSettings->setTlsCertificateAuthorityFile($caFile);
+            }
         }
 
         $mqtt->connect($connectionSettings);

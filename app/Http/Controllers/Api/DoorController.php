@@ -15,7 +15,7 @@ class DoorController extends Controller
 {
     public function index()
     {
-        $doors = Door::with('sensor')->withCount('badges')->orderByDesc('created_at')->get();
+        $doors = Door::with(['sensor', 'badges'])->withCount('badges')->orderByDesc('created_at')->get();
 
         return DoorResource::collection($doors);
     }
