@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Events\AccessLogCreated;
+use App\Events\SensorStatusUpdated;
 use App\Models\AccessLog;
 use App\Models\Badge;
 use App\Models\Sensor;
@@ -114,6 +115,13 @@ class MqttListenCommand extends Command
             'status' => 'online',
             'last_seen' => now(),
         ]);
+
+        // Réponse à une commande STATUS
+        if (isset($data['action']) && $data['action'] === 'status') {
+            event(new SensorStatusUpdated($sensor, $data));
+            $this->info("Status reçu du capteur [{$sensor->name}]: " . json_encode($data));
+            return;
+        }
 
         // Extraire l'UID du badge scanné
         $badgeUid = $data['user_id'] ?? null;
